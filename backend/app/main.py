@@ -3,10 +3,10 @@ from logging import getLogger
 from fastapi import FastAPI
 from sqlalchemy import text
 
+from . import models
 from .common.config_loader import load_config
 from .common.log_setter import setup_logger
 from .database import SessionLocal, engine
-from . import models
 
 logger = getLogger(__name__)
 config = load_config(layer="logger")
@@ -18,13 +18,14 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
 # Event handler when starting the API
 @app.on_event("startup")
 def on_startup():
     """When starting the API, check database connection"""
-    
-    models.Base.metadata.create_all(bind=engine) # Create DB tables from models module
-    
+
+    models.Base.metadata.create_all(bind=engine)  # Create DB tables from models module
+
     try:
         db = SessionLocal()
         db.execute(text("SELECT 1"))  # Check connection

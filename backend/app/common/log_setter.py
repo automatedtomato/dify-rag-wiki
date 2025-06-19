@@ -45,7 +45,7 @@ def setup_logger(
     )
 
     if not os.path.exists(_save_path):
-        with open(_save_path, "w") as f:
+        with open(_save_path, "w"):
             pass
 
     logger = _set_log_level(logger, _log_level)
