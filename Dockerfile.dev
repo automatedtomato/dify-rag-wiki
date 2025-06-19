@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+
+WORKDIR /workspace
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    bash \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+ENV PYTHONPATH="/workspace/backend:${PYTHONPATH}"
+
+CMD ["tail", "-f", "/dev/null"]

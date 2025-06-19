@@ -1,0 +1,10 @@
+ipykernel
+langchain
+dify-client
+sentence-transformers
+sqlalchemy
+psycopg2-binary
+fastapi
+uvicorn[standard]
+pyyaml
+python-dotenv
