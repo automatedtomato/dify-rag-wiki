@@ -2,15 +2,14 @@ name: Auto Format
 
 on:
   push:
-    branch: ["*"]
+    branches: ["*"]
 
 jobs:
   format:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -29,11 +28,11 @@ jobs:
           flake . --max-line-length=88 --extend-ignore=E203,W503
 
       - name: Auto-push and commit
-      - run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add .
-          git commit -m "Auto-format code"
-          git push
-        fi
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add .
+            git commit -m "Auto-format code"
+            git push
+          fi
