@@ -23,7 +23,10 @@ def resolve_param(
     """
     
     if config_param is not None and dict_param is not None:
-        logger.warning(f'Both config["{param_name}"] and dict_param["{param_name}"] are set. Using config["{param_name}"].')
+        logger.warning(
+            f'Both config["{param_name}"] and dict_param["{param_name}"] are set. \
+            Using config["{param_name}"].'
+                        )
         return config_param
     
     return config_param or dict_param or default
