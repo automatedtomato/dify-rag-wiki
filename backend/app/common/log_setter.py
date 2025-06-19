@@ -1,4 +1,5 @@
 import logging
+import os
 from logging import Formatter, StreamHandler, handlers
 from typing import Any, Dict, Optional
 
@@ -40,14 +41,18 @@ def setup_logger(
         config_param=config.get("save_path") if config else None,
         dict_param=save_path,
         default=None,
-        param_name="log_save_path",
+        param_name="save_path",
     )
+
+    if not os.path.exists(_save_path):
+        with open(_save_path, "w") as f:
+            pass
 
     logger = _set_log_level(logger, _log_level)
 
     st_handler = StreamHandler()
     fl_handler = handlers.RotatingFileHandler(
-        file_name=_save_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+        filename=_save_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
     )
 
     formatter = Formatter(FORMAT)

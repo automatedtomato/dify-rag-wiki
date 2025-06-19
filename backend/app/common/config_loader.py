@@ -18,7 +18,7 @@ def load_config(layer: Optional[str] = None) -> Dict[str, Any]:
 
 def _get_config_path() -> str:
     current = Path(__file__)
-    root = current.parents[2]
+    root = current.parents[3]
     config_path = root / "config/config.yaml"
 
     return config_path.resolve()

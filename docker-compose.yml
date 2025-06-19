@@ -1,0 +1,36 @@
+services:
+  python-dev:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    container_name: dify-rag-dev
+    ports:
+      - "8088:8000"
+    volumes: 
+      - .:/workspace
+    # Run the container in an interactive mode
+    # tty: true
+    # stdin_open: true
+    environment:
+      - TZ=Asia/Tokyo
+    env_file:
+      - .env
+    depends_on:
+      - db
+    working_dir: /workspace
+
+  db:
+    image: postgres:15
+    container_name: dify-rag-dev-db
+    environment:
+      - TZ=Asia/Tokyo
+    env_file:
+      - .env
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+
+# Persistent data
+volumes:
+  postgres-data:

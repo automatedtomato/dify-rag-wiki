@@ -15,4 +15,6 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONPATH="/workspace/backend:${PYTHONPATH}"
 
-CMD ["tail", "-f", "/dev/null"]
+COPY . .
+
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

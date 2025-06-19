@@ -1,6 +1,6 @@
 {
     "name": "Python Dev Environment",
-    "dockerComposeFile": "../docker-compose.dev.yml",
+    "dockerComposeFile": "../docker-compose.yml",
     "service": "python-dev",
     "workspaceFolder": "/workspace",
 
