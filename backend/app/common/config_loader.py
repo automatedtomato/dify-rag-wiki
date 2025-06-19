@@ -2,8 +2,6 @@ from pathlib import Path
 import yaml
 from typing import Optional, Dict, Any
 
-from .param_resolver import resolve_param
-
 def load_config(layer: Optional[str] = None) -> Dict[str, Any]:
     config_path = _get_config_path()
     
