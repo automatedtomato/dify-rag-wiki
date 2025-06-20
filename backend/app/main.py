@@ -37,14 +37,15 @@ def on_startup():
     models.Base.metadata.create_all(bind=engine)  # Create DB tables from models module
 
     try:
-        db = SessionLocal()
-        # Check connection # wrap with text() to prevent SQL injection
-        db.execute(text("SELECT 1"))
-        logger.info("Database connection successful")
+        with SessionLocal() as db:
+            logger.info("Database connection successful")
+
+            logger.info("Checking pg_trgm extension...")
+            db.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
+            logger.info("pg_trgm extension enabled")
+
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
-    finally:
-        db.close()
 
 
 # GET request endpoint for root URL("/")

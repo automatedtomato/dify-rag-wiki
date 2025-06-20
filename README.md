@@ -1,4 +1,18 @@
 ## Setup
+### 0. Setup Environment
+Rename .env.example to .env:
+
+```bash
+mv .env.example .env
+```
+then edit the file:
+```text
+// E.g.
+
+POSTGRES_USER=example
+POSTGRES_PASSWORD=example
+...
+```
 ### 1. Build container
 ```bash
 # build & compose
@@ -37,18 +51,30 @@ docker exec -it dify-rag-dev-db psql -U user -d chatbot_db
 #  title      | character varying(255)   |           | not null | 
 # ...
 ```
-### 3. Download Wikipedia dump data / Parse XML data and save to DB
+### 3. Data initializing pipeline
+Run data processing pipeline by command below. This command execute:
+- Download Wikipedia dump data
+- Parse XML data and save to DB
+- Create GIN indexes to title and content for faster searching
+```bash
+docker-compose exec python-dev python scripts/init_pipeline.py --dl --parse --id
+```
+
+...Or instead, you can run each process separately:
 ```bash
 docker-compose exec python-dev python scripts/download_wiki.py
 
 docker-compose exec python-dev python scripts/parse_wiki.py
+
+docker-compose exec python-dev python scripts/create_indexes.py
 ```
-This process will takes a long time. If you want to see if datas inserted correctly in process:
+
+This process will takes a long time. If you want to see if datas inserted correctly:
 ```bash
 docker exec -it dify-rag-dev-db psql -U user -d chatbot_db
 ```
 then
 ```sql
-chatbot_db=# SELECT COUNT(*) FROM articles;
+SELECT COUNT(*) FROM articles;
 ```
-And you can see numbers of datas inserted to DB.
+And you can see numbers of datas inserted to DB!
