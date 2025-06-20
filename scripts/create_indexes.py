@@ -31,7 +31,7 @@ def create_gin_indexes():
     """
     Create GIN indexes on articles table
     """
-    
+
     logger.info("Creating GIN indexes...(this may take a while)")
 
     try:
@@ -41,7 +41,7 @@ def create_gin_indexes():
             db.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
             db.commit()
             logger.info("pg_trgm extension enabled")
-            
+
             # title index
             logger.info("Create title index...")
             db.execute(
