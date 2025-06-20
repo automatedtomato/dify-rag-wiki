@@ -4,21 +4,31 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from . import models
+from .api import articles
 from .common.config_loader import load_config
 from .common.log_setter import setup_logger
 from .database import SessionLocal, engine
 
+# ========== Logging Config ==========
 logger = getLogger(__name__)
 config = load_config(layer="logger")
 logger = setup_logger(logger, config=config)
 
+
+#  ========== FastAPI Config ==========
 app = FastAPI(
     title="Dify Chatbot API",
     description="Dify Chatbot - Wikipedia knowledge base API",
     version="0.1.0",
 )
 
+# Include API groups defined in articles.py.
+# prefix: all API endpoints defined in articles.py will be prefixed with "/api/articles"
+# tags: for grouping API documents
+app.include_router(articles.router, prefix="/api/articles", tags=["Articles"])
 
+
+# ========== Routers ==========
 # Event handler when starting the API
 @app.on_event("startup")
 def on_startup():
