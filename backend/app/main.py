@@ -28,7 +28,8 @@ def on_startup():
 
     try:
         db = SessionLocal()
-        db.execute(text("SELECT 1"))  # Check connection # wrap with text() to prevent SQL injection
+        # Check connection # wrap with text() to prevent SQL injection
+        db.execute(text("SELECT 1"))
         logger.info("Database connection successful")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")

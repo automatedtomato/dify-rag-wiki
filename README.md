@@ -1,4 +1,5 @@
 ## Setup
+### 1. Build container
 ```bash
 # build & compose
 docker-compose -f docker-compose.dev.yml up -d --build
@@ -12,6 +13,7 @@ docker-compose -f docker-compose.dev.yml exec python-dev bash
 # exit
 docker-compose -f docker-compose.dev.yml down
 ```
+### 2. Build DB
 ```bash
 # Check if table is created when API starts
 docker exec -it dify-rag-dev-db psql -U user -d chatbot_db
@@ -35,3 +37,18 @@ docker exec -it dify-rag-dev-db psql -U user -d chatbot_db
 #  title      | character varying(255)   |           | not null | 
 # ...
 ```
+### 3. Download Wikipedia dump data / Parse XML data and save to DB
+```bash
+docker-compose exec python-dev python scripts/download_wiki.py
+
+docker-compose exec python-dev python scripts/parse_wiki.py
+```
+This process will takes a long time. If you want to see if datas inserted correctly in process:
+```bash
+docker exec -it dify-rag-dev-db psql -U user -d chatbot_db
+```
+then
+```sql
+chatbot_db=# SELECT COUNT(*) FROM articles;
+```
+And you can see numbers of datas inserted to DB.
