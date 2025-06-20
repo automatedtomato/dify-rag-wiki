@@ -8,3 +8,5 @@ fastapi
 uvicorn[standard]
 pyyaml
 python-dotenv
+requests
+tqdm
