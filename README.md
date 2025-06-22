@@ -16,16 +16,16 @@ POSTGRES_PASSWORD=example
 ### 1. Build container
 ```bash
 # build & compose
-docker-compose -f docker-compose.dev.yml up -d --build
+docker-compose up -d --build
 
 # enter into container
-docker-compose -f docker-compose.dev.yml exec python-dev bash
+docker-compose exec python-dev bash
 
 # Or if you use vscode:
 # Choose "Dev Containers: Reopen in Container"
 
 # exit
-docker-compose -f docker-compose.dev.yml down
+docker-compose down
 ```
 ### 2. Build DB
 ```bash
