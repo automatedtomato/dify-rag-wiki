@@ -43,3 +43,9 @@ services:
 # Persistent data
 volumes:
   postgres-data:
+
+# Connect to Dify
+networks:
+  default:
+    external:
+      name: chatbot-network

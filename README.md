@@ -78,3 +78,42 @@ then
 SELECT COUNT(*) FROM articles;
 ```
 And you can see numbers of datas inserted to DB!
+
+
+### 4. Setup Dify
+In other directory outside of this project root, clone Dify official repo and open container.
+```bash
+git clone https://github.com/langgenius/dify.git
+cd diy/docker
+cp .env.example .env
+docker-compose up -d
+```
+Add these lines at the end of `docker-compose.yml` in the project;
+```yaml
+networks:
+  default:
+    external:
+      name: chatbot-network
+```
+then, add some difinitions to `docker/docker-compose.yml` in the Dify repo;
+```yaml
+services:
+  # ... (no modification) ...
+  api:
+    networks:
+      - chatbot-network # Add this
+  # ...
+  worker:
+  # ...
+    networks:
+      - chatbot-networks # Add this
+networks:
+  # ...
+  # Add these
+  chatbot-network:
+    external: true
+```
+then, connect API container and Dify container creatig network between them;
+```bash
+docker network create chatbot-network
+```
