@@ -95,7 +95,7 @@ networks:
     external:
       name: chatbot-network
 ```
-then, add some difinitions to `docker/docker-compose.yml` in the Dify repo;
+then, add some difinitions to `docker/docker-compos.template.yml` in the Dify repo;
 ```yaml
 services:
   # ... (no modification) ...
@@ -117,3 +117,35 @@ then, connect API container and Dify container creatig network between them;
 ```bash
 docker network create chatbot-network
 ```
+
+Run `dify/docker/generate_docker_compose.py`, then deploy containers
+```bash
+# dify/docker
+python dify/docker/generate_docker_compose.py
+
+docker-compose up -d
+
+# Project root
+docker-compose up -d
+```
+Access to `http://localhost` and login!
+### Setup Custom Tool for Dify
+1. Access to `http://localhost:8088/openapi.json` in your browser, and copy all the JSON texts displayed.
+2. Edit the JSON file: add `servers` block right after `info` block. Designate `dify-rag-dev' container to URL.
+```json
+{
+    "openapi": "3.1.0",
+    "info": { ... },
+
+    "servers": [
+        {
+            "url": "http://dify-rag-dev:8000"
+        }
+    ],
+
+    "paths": { ... }
+    // ...
+```
+3. Input this modified schemas to Dify Custom Tool's "OpenAPI shcema" section.
+4. Add custom tool we just registered to the model.
+5. Create system prompt and you can talk debug!
