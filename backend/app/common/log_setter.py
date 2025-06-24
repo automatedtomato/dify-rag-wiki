@@ -49,7 +49,7 @@ def setup_logger(
             pass
 
     logger = _set_log_level(logger, _log_level)
-    
+
     formatter = Formatter(FORMAT)
 
     st_handler = StreamHandler()
@@ -58,9 +58,12 @@ def setup_logger(
 
     if _save_path is not None:
         fl_handler = handlers.RotatingFileHandler(
-            filename=_save_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+            filename=_save_path,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,
+            encoding="utf-8",
         )
-        
+
         fl_handler.setFormatter(formatter)
 
         logger.addHandler(fl_handler)
