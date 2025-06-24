@@ -207,3 +207,5 @@ data/raw/*.bz2
 
 # openapi json file
 openapi.json
+
+.devcontainer/
