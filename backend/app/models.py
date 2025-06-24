@@ -4,7 +4,7 @@ models.py
 This module is used to define the database models for the application.
 """
 
-from sqlalchemy import BigInteger, Column, DateTime, Integer, String, Text, ForeignKey
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.sql import func
 
 from .database import Base
@@ -35,27 +35,26 @@ class Article(Base):
     def __repr__(self):
         return f"<Article(id={self.id}, title='{self.title}')>"
 
+
 class ChatMessage(Base):
-    """ 
+    """
     Table model for chat messages
     """
-    
+
     __tablename__ = "chat_messages"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    
+
     # Which conversation this message belongs to
     session_id = Column(String(255), nullable=False, index=True)
-    
+
     # Type of message: 'user' or 'assistant'
     role = Column(String(50), nullable=False)
-    
+
     # Message content
     content = Column(Text, nullable=False)
-    
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
     def __repr__(self):
         return f"<ChatMessage(session_id='{self.session_id}', role='{self.role}')>"
