@@ -19,6 +19,8 @@ services:
       db:
         condition: service_healthy
     working_dir: /workspace
+    networks:
+      - chatbot-network
 
   db:
     image: postgres:15
@@ -39,6 +41,8 @@ services:
       - ./postgres-data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
+    networks:
+      - chatbot-network
 
 # Persistent data
 volumes:
@@ -46,6 +50,5 @@ volumes:
 
 # Connect to Dify
 networks:
-  default:
-    external:
-      name: chatbot-network
+  chatbot-network:
+    external: true
