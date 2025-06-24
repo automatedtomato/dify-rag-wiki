@@ -50,6 +50,8 @@ class ChatMessage(Base):
 
     # Type of message: 'user' or 'assistant'
     role = Column(String(50), nullable=False)
+    
+    dify_conversation_id = Column(String(255), nullable=True, index=True)
 
     # Message content
     content = Column(Text, nullable=False)

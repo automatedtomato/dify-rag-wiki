@@ -44,24 +44,26 @@ def setup_logger(
         param_name="save_path",
     )
 
-    if not os.path.exists(_save_path):
+    if save_path is not None and not os.path.exists(_save_path):
         with open(_save_path, "w"):
             pass
 
     logger = _set_log_level(logger, _log_level)
-
-    st_handler = StreamHandler()
-    fl_handler = handlers.RotatingFileHandler(
-        filename=_save_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
-    )
-
+    
     formatter = Formatter(FORMAT)
 
+    st_handler = StreamHandler()
     st_handler.setFormatter(formatter)
-    fl_handler.setFormatter(formatter)
-
     logger.addHandler(st_handler)
-    logger.addHandler(fl_handler)
+
+    if _save_path is not None:
+        fl_handler = handlers.RotatingFileHandler(
+            filename=_save_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+        )
+        
+        fl_handler.setFormatter(formatter)
+
+        logger.addHandler(fl_handler)
 
     return logger
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from . import models
-from .api import articles
+from .api import articles, chat
 from .common.config_loader import load_config
 from .common.log_setter import setup_logger
 from .database import SessionLocal, engine
@@ -22,10 +22,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Include API groups defined in articles.py.
+# Include API groups defined in api/
 # prefix: all API endpoints defined in articles.py will be prefixed with "/api/articles"
 # tags: for grouping API documents
 app.include_router(articles.router, prefix="/api/articles", tags=["Articles"])
+app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 
 
 # ========== Routers ==========
