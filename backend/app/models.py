@@ -34,3 +34,29 @@ class Article(Base):
 
     def __repr__(self):
         return f"<Article(id={self.id}, title='{self.title}')>"
+
+
+class ChatMessage(Base):
+    """
+    Table model for chat messages
+    """
+
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Which conversation this message belongs to
+    session_id = Column(String(255), nullable=False, index=True)
+
+    # Type of message: 'user' or 'assistant'
+    role = Column(String(50), nullable=False)
+
+    dify_conversation_id = Column(String(255), nullable=True, index=True)
+
+    # Message content
+    content = Column(Text, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self):
+        return f"<ChatMessage(session_id='{self.session_id}', role='{self.role}')>"

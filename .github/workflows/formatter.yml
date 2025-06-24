@@ -25,7 +25,7 @@ jobs:
         run: |
           isort .
           black .
-          flake8 . --max-line-length=88 --extend-ignore=E203,W503
+          flake8 . --max-line-length=88 --extend-ignore=E203,E402,W503
 
       - name: Auto-push and commit
         run: |

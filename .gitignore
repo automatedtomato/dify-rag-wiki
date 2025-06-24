@@ -202,3 +202,8 @@ __marimo__/
 
 # PostgreSQL data
 postgres-data/
+
+data/raw/*.bz2
+
+# openapi json file
+openapi.json
