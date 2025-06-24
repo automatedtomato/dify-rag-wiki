@@ -9,6 +9,7 @@ sys.path.append(os.getcwd())
 from create_indexes import create_gin_indexes
 from download_wiki import download_wiki
 from parse_wiki import parse_and_save
+from vectorize_articles import vectorize_and_save
 
 # ========== Logging Config ==========
 FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
@@ -25,6 +26,7 @@ def run_pipeline(
     download: bool = True,
     parse: bool = True,
     create_id: bool = True,
+    vectorize: bool = True,
 ):
 
     logger.info("===== Start Initial Pipeline =====")
@@ -41,6 +43,10 @@ def run_pipeline(
         if create_id:
             logger.info("==== Creating GIN indexes ====")
             create_gin_indexes()
+
+        if vectorize:
+            logger.info("==== Vectorizing articles data ====")
+            vectorize_and_save()
 
         logger.info("===== Pipeline completed successfully =====")
 
@@ -72,6 +78,15 @@ if __name__ == "__main__":
         default=False,
     )
 
+    parser.add_argument(
+        "--vector",
+        action="store_true",
+        help="Vectorize Wikipedia data",
+        default=False,
+    )
+
     args = parser.parse_args()
 
-    run_pipeline(download=args.dl, parse=args.parse, create_id=args.id)
+    run_pipeline(
+        download=args.dl, parse=args.parse, create_id=args.id, vectorize=args.vector
+    )

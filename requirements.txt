@@ -11,3 +11,5 @@ python-dotenv
 requests
 tqdm
 pydantic
+sentence-transformers
+pgvector
