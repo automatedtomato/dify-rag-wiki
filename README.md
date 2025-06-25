@@ -78,26 +78,6 @@ docker network create chatbot-network
 
     *Make sure to fill in the necessary values in your new `.env` file.*
 
-3.  Modify `dify-rag-wiki/docker-compose.yml` to use the shared network. Add the following blocks:
-
-    ```yaml
-    # In dify-rag-wiki/docker-compose.yml
-
-    services:
-      python-dev:
-        # ... (other settings)
-        networks:
-          - chatbot-network
-      db:
-        # ... (other settings)
-        networks:
-          - chatbot-network
-
-    networks:
-      chatbot-network:
-        external: true
-    ```
-
 ### Step 4: Configure the Dify Project
 
 1.  Navigate to the `dify/docker` directory.
@@ -146,9 +126,21 @@ docker network create chatbot-network
 
 Launch both projects from their respective directories.
 
+a. If **GPU is unavailabel**:
+
 ```bash
 # In the dify-rag-wiki directory
 docker-compose up -d --build
+
+# In the dify/docker directory
+docker-compose up -d
+```
+
+a. If **GPU is available**:
+
+```bash
+# In the dify-rag-wiki directory
+docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
 
 # In the dify/docker directory
 docker-compose up -d
