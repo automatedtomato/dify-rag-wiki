@@ -79,26 +79,6 @@ docker network create chatbot-network
 
     *新しい`.env`ファイルに必要な値を忘れずに設定してください。*
 
-3.  `dify-rag-wiki/docker-compose.yml`を修正し、共有ネットワークを使用するように設定します。以下のブロックを追記・修正してください。
-
-    ```yaml
-    # dify-rag-wiki/docker-compose.yml
-
-    services:
-      python-dev:
-        # ... (他の設定)
-        networks:
-          - chatbot-network
-      db:
-        # ... (他の設定)
-        networks:
-          - chatbot-network
-
-    networks:
-      chatbot-network:
-        external: true
-    ```
-
 ### ステップ4：Difyプロジェクトの設定
 
 1.  `dify/docker`ディレクトリに移動します。
@@ -147,13 +127,26 @@ docker network create chatbot-network
 
 それぞれのプロジェクトのディレクトリから、両方のプロジェクトを起動します。
 
-```bash
-# dify-rag-wiki ディレクトリで実行
-docker-compose up -d --build
+  a. **GPU非搭載**のPCの場合
 
-# dify/docker ディレクトリで実行
-docker-compose up -d
-```
+  ```bash
+  # dify-rag-wiki ディレクトリで実行
+  docker-compose up -d --build
+
+  # dify/docker ディレクトリで実行
+  docker-compose up -d
+  ```
+
+  b. **GPU搭載**のPCの場合
+
+  ```bash
+  # dify-rag-wiki ディレクトリで実行
+  docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
+
+  # dify/docker ディレクトリで実行
+  docker-compose up -d
+  ```
+
 
 すべてのコンテナが起動し、healthy状態になるのを待ちます。
 
