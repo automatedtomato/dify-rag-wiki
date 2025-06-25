@@ -200,7 +200,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# PostgreSQL data
+# PostgreSQL dataおお
 postgres-data/
 
 data/raw/*.bz2

@@ -41,9 +41,12 @@ def on_startup():
         with SessionLocal() as db:
             logger.info("Database connection successful")
 
-            logger.info("Checking pg_trgm extension...")
+            logger.info("Checking extensions...")
+            # Check pg_trgm extension
             db.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
-            logger.info("pg_trgm extension enabled")
+            # Check pg_vector extension
+            db.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+            logger.info('"pg_trgm" and "vector" extension enabled')
 
     except Exception as e:
         logger.error(f"Database connection failed: {e}")

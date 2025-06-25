@@ -4,6 +4,7 @@ models.py
 This module is used to define the database models for the application.
 """
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.sql import func
 
@@ -25,6 +26,8 @@ class Article(Base):
     )  # Wikipedia article ID
     title = Column(String(255), nullable=False, index=True)
     content = Column(Text, nullable=False)
+    # 384 dimension vector
+    content_vector = Column(Vector(384), nullable=True)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
