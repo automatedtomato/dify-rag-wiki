@@ -6,10 +6,10 @@ from logging import Formatter, StreamHandler, getLogger
 
 sys.path.append(os.getcwd())
 
-from create_indexes import create_gin_indexes
-from download_wiki import download_wiki
-from parse_wiki import parse_and_save
-from vectorize_articles import vectorize_and_save
+from create_indexes import main as create_gin_indexes
+from download_wiki import main as download_wiki
+from parse_wiki import main as parse_and_save
+from vectorize_articles import main as vectorize_and_save
 
 # ========== Logging Config ==========
 FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
@@ -40,18 +40,19 @@ def run_pipeline(
             logger.info("==== Parsing Wikipedia data ====")
             parse_and_save()
 
-        if create_id:
-            logger.info("==== Creating GIN indexes ====")
-            create_gin_indexes()
-
         if vectorize:
             logger.info("==== Vectorizing articles data ====")
             vectorize_and_save()
+
+        if create_id:
+            logger.info("==== Creating GIN indexes ====")
+            create_gin_indexes()
 
         logger.info("===== Pipeline completed successfully =====")
 
     except Exception as e:
         logger.error(f"Pipeline failed: {e}\nStop pipeline.", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

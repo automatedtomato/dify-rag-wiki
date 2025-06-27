@@ -25,16 +25,21 @@ logger.addHandler(st_handler)
 
 # ========== Constatns ==========
 WIKI_DUMP_URL = (
-    "https://dumps.wikimedia.org/jawiki/latest/jawiki-latest-pages-articles.xml.bz2"
+    # "https://dumps.wikimedia.org/jawiki/latest/jawiki-latest-pages-articles.xml.bz2" # Japanese
+    "https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2"  # English
 )
 
 SAVE_DIR = "data/raw"
 
-FILE_PATH = os.path.join(SAVE_DIR, "jawiki-latest-pages-articles.xml.bz2")
+FILE_PATH = os.path.join(
+    SAVE_DIR,
+    # "jawiki-latest-pages-articles.xml.bz2" # Japanese
+    "enwiki-latest-pages-articles.xml.bz2",  # English
+)
 
 
 # ========== Download function ==========
-def download_wiki():
+def main():
     """
     Stream-download Wikipedia articles data from dumps.
     Show progress bar.
@@ -77,4 +82,4 @@ if __name__ == "__main__":
     if os.path.exists(FILE_PATH):
         logger.info(f"{FILE_PATH} already exists. Skipping download.")
     else:
-        download_wiki()
+        main()

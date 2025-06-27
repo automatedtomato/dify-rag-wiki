@@ -11,11 +11,5 @@ python-dotenv
 requests
 tqdm
 pydantic
-<<<<<<< HEAD
-torch
-torchvision
-torchaudio
-=======
-sentence-transformers
 pgvector
->>>>>>> feature/pgvector
+numpy
