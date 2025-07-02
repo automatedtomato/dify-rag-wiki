@@ -63,3 +63,17 @@ class ChatMessage(Base):
 
     def __repr__(self):
         return f"<ChatMessage(session_id='{self.session_id}', role='{self.role}')>"
+
+
+class Page(Base):
+    __tablename__ = "page"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    namespace = Column(Integer, nullable=False, index=True)
+    title = Column(String(255), nullable=False, index=True)
+
+
+class CategoryLink(Base):
+    __tablename__ = "categorylinks"
+    id = Column(Integer, primary_key=True)
+    cl_from = Column(Integer, nullable=False, index=True)
+    cl_to = Column(String(255), nullable=False, index=True)

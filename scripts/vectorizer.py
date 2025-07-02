@@ -1,6 +1,7 @@
+import gc
 import os
 import sys
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import getLogger
 
 import torch
 from sqlalchemy import create_engine, func
@@ -13,28 +14,20 @@ from sentence_transformers import SentenceTransformer
 
 from backend.app.models import Article
 
+from scripts.common.log_setting import setup_logger
+
 # from sqlalchemy.orm import Session
 
 
 # ========== Logging Config ==========
-FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
-
 logger = getLogger(__name__)
-logger.setLevel(DEBUG)
-
-st_handler = StreamHandler()
-
-formatter = Formatter(FORMAT)
-
-st_handler.setFormatter(formatter)
-
-logger.addHandler(st_handler)
+logger = setup_logger(logger=logger)
 
 
 # ========== Constants ==========
 # Download pretrained multilingual model
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 INTERVAL = BATCH_SIZE * 40
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -122,6 +115,13 @@ def main():
                     db.commit()
                     logger.info("Committed...")
                     since_last_commit = 0
+                    
+                del vectors_tensor, vectors_numpy, contents, articles_to_process, articles_batch
+                # Release GPU memory
+                if device == 'cuda':
+                    torch.cuda.empty_cache()
+                # Force garbage collection
+                gc.collect()
 
             if since_last_commit > 0:
                 logger.info(f"Committing final {since_last_commit} articles to DB...")

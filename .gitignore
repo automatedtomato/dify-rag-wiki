@@ -203,7 +203,8 @@ __marimo__/
 # PostgreSQL dataおお
 postgres-data/
 
-data/raw/*.bz2
+
+data/raw/
 
 # openapi json file
 openapi.json

@@ -3,30 +3,26 @@ Download Wikipedia articles and metadata from dumps.
 """
 
 import os
-import gzip
-import shutil
-from logging import INFO, Formatter, StreamHandler, getLogger
+from logging import getLogger
 
 import requests
 from tqdm import tqdm
 
+from scripts.common.log_setting import setup_logger
+
 # ========== Logging Config ==========
-FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
-
 logger = getLogger(__name__)
-logger.setLevel(INFO)
-
-st_handler = StreamHandler()
-
-formatter = Formatter(FORMAT)
-
-st_handler.setFormatter(formatter)
-
-logger.addHandler(st_handler)
+logger = setup_logger(logger=logger)
 
 
 # ========== Constatns ==========
+
 DUMP_FILES = {
+    "en": "https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2",
+    "ja": "https://dumps.wikimedia.org/jawiki/latest/jawiki-latest-pages-articles.xml.bz2",
+}
+
+METADATA_FILES = {
     "en": {
         "page": "https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-page.sql.gz",
         "category_links": "https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-categorylinks.sql.gz",
@@ -39,10 +35,11 @@ DUMP_FILES = {
 
 
 SAVE_DIR = "data/raw"
+SAVE_PATH = os.path.join(SAVE_DIR, "jawiki-latest-pages-articles.xml.bz2")
 
 
 # ========== Downloader ==========
-def download_file(url: str, save_path: str):
+def download_file(save_path: str, url: str = DUMP_FILES["ja"]):
     """
     Stream-download Wikipedia articles data from dumps.
     Show progress bar.
@@ -80,25 +77,6 @@ def download_file(url: str, save_path: str):
     except requests.exceptions.RequestException as e:
         logger.error(f"Error downloading Wikipedia data: {e}")
 
-def main(lang: str = "en"):
-    os.makedirs(SAVE_DIR, exist_ok=True)
-    for name, url in DUMP_FILES[lang].items():
-        file_name = url.split("/")[-1]
-        save_path = os.path.join(SAVE_DIR, file_name)
-        
-        if os.path.exists(save_path.replace(".gz", ".sql")):
-            logger.warning(f"{save_path} already exists. Skipping.")
-            continue
-        
-        if not os.path.exists(save_path):
-            logger.info(f"Downloading dump: {name}")
-            download_file(url, save_path)
-            
-        logger.info(f"Unzipping {save_path}...")
-        with gzip.open(save_path, "rb") as f_in:
-            with open(save_path.replace(".gz", ".sql"), "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        logger.info(f"Unzipping complete.")
-        
+
 if __name__ == "__main__":
-    main()
+    download_file(SAVE_PATH)

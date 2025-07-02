@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from logging import Formatter, StreamHandler, getLogger
+from logging import getLogger
 
 from sqlalchemy import text
 
@@ -9,6 +9,8 @@ from sqlalchemy import text
 sys.path.append(os.getcwd())
 
 from backend.app.database import SessionLocal
+
+from scripts.common.log_setting import setup_logger
 
 # ========== SQL Commands ==========
 SQL_COMMANDS = [
@@ -21,19 +23,7 @@ SQL_COMMANDS = [
 
 # ========== Logging Config ==========
 logger = getLogger(__name__)
-
-FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
-
-logger = getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-st_handler = StreamHandler()
-
-formatter = Formatter(FORMAT)
-
-st_handler.setFormatter(formatter)
-
-logger.addHandler(st_handler)
+logger = setup_logger(logger=logger)
 
 
 def main():
