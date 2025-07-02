@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 logger = setup_logger(logger=logger)
 
 # --- Constants ---
-XML_FILE_PATH = os.path.join("data/raw", "jawiki-latest-pages-articles.xml.bz2")
+XML_FILE_PATH = os.path.join(
+    "data/raw",
+    "jawiki-latest-pages-articles.xml.bz2"
+    )
 OUTPUT_JSONL_PATH = os.path.join("data/raw", "articles.jsonl")
 XML_NAMESPACE = "{http://www.mediawiki.org/xml/export-0.11/}"
 # Prefixes for meta-pages to skip

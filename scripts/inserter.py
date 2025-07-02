@@ -1,6 +1,3 @@
-# scripts/inserter.py
-# This script reads the .jsonl file created by parser.py and inserts the data into the database.
-
 import json
 import os
 import sys
@@ -95,11 +92,13 @@ def main():
                 saved_count += len(article_buffer)
 
             logger.info(
-                f"Process complete. A total of {saved_count} articles have been inserted."
+                f"Process complete. \
+                    A total of {saved_count} articles have been inserted."
             )
         except FileNotFoundError:
             logger.error(
-                f"Input file not found: {INPUT_JSONL_PATH}. Please run the parser script first."
+                f"Input file not found: {INPUT_JSONL_PATH}. \
+                    Please run the parser script first."
             )
             sys.exit(1)
         except Exception as e:

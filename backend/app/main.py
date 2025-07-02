@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from . import models
@@ -20,6 +21,23 @@ app = FastAPI(
     title="Dify Chatbot API",
     description="Dify Chatbot - Wikipedia knowledge base API",
     version="0.1.0",
+)
+
+# Allow Cross-Origin Shareing (CORS)
+# This allows the frontend (tunning on a different port) to communicate with the backend
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://127.0.0.1.8000",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include API groups defined in api/

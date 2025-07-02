@@ -14,9 +14,12 @@ from scripts.common.log_setting import setup_logger
 SQL_COMMANDS = [
     "CREATE EXTENSION IF NOT EXISTS pg_trgm;",
     "CREATE EXTENSION IF NOT EXISTS vector;",
-    "CREATE INDEX IF NOT EXISTS idx_articles_title_gin ON articles USING gin (title gin_trgm_ops);",
-    "CREATE INDEX IF NOT EXISTS idx_articles_content_gin ON articles USING gin (content gin_trgm_ops);",
-    "CREATE INDEX IF NOT EXISTS idx_articles_vector ON articles USING hnsw (content_vector vector_l2_ops);",
+    "CREATE INDEX IF NOT EXISTS idx_articles_title_gin \
+        ON articles USING gin (title gin_trgm_ops);",
+    "CREATE INDEX IF NOT EXISTS idx_articles_content_gin \
+        ON articles USING gin (content gin_trgm_ops);",
+    "CREATE INDEX IF NOT EXISTS idx_articles_vector \
+        ON articles USING hnsw (content_vector vector_l2_ops);",
 ]
 
 # ========== Logging Config ==========
