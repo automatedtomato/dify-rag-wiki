@@ -6,9 +6,12 @@ from logging import Formatter, StreamHandler, getLogger
 
 sys.path.append(os.getcwd())
 
-from create_indexes import create_gin_indexes
-from download_wiki import download_wiki
-from parse_wiki import parse_and_save
+from index_generator import main as create_gin_indexes
+from sql_importer import main as import_sql
+from title_generator import main as generate_title
+from vectorizer import main as vectorize_wiki
+from wiki_loader import download_file, download_metadata
+from wiki_parser import main as parse_wiki
 
 # ========== Logging Config ==========
 FORMAT = "%(levelname)-8s %(asctime)s - [%(filename)s:%(lineno)d]\t%(message)s"
@@ -22,21 +25,37 @@ logger.addHandler(st_handler)
 
 # ========== Run pipeline ==========
 def run_pipeline(
-    download: bool = True,
+    download_dumps: bool = True,
+    download_meta: bool = True,
     parse: bool = True,
+    vectorize: bool = True,
     create_id: bool = True,
 ):
 
     logger.info("===== Start Initial Pipeline =====")
 
     try:
-        if download:
+        if download_dumps:
             logger.info("==== Downloading Wikipedia data ====")
-            download_wiki()
+            download_file()
+
+        if download_meta:
+            logger.info("==== Downloading Wikipedia metadata ====")
+            download_metadata()
+
+            logger.info("==== Importing SQL files ====")
+            import_sql()
+
+            logger.info("==== Generating title ====")
+            generate_title()
 
         if parse:
             logger.info("==== Parsing Wikipedia data ====")
-            parse_and_save()
+            parse_wiki()
+
+        if vectorize:
+            logger.info("==== Vectorizing articles data ====")
+            vectorize_wiki()
 
         if create_id:
             logger.info("==== Creating GIN indexes ====")
@@ -46,32 +65,58 @@ def run_pipeline(
 
     except Exception as e:
         logger.error(f"Pipeline failed: {e}\nStop pipeline.", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument(
-        "--dl",
-        action="store_true",
-        help="Download Wikipedia data",
-        default=False,
+        "--ndl",
+        "--no-dl",
+        action="store_false",
+        help="Not downloading Wikipedia dumps",
+        default=True,
     )
 
     parser.add_argument(
-        "--parse",
-        action="store_true",
-        help="Parse Wikipedia data",
-        default=False,
+        "--nm",
+        "--no-meta",
+        action="store_false",
+        help="Not downloading Wikipedia metadata",
+        default=True,
     )
 
     parser.add_argument(
-        "--id",
-        action="store_true",
-        help="Create GIN indexes",
-        default=False,
+        "--np",
+        "--no-parse",
+        action="store_false",
+        help="Not parsing Wikipedia data",
+        default=True,
+    )
+
+    parser.add_argument(
+        "--nv",
+        "--vector",
+        action="store_false",
+        help="Not vectorize Wikipedia data",
+        default=True,
+    )
+
+    parser.add_argument(
+        "--nid",
+        "--no-id",
+        action="store_false",
+        help="Not create GIN indexes",
+        default=True,
     )
 
     args = parser.parse_args()
 
-    run_pipeline(download=args.dl, parse=args.parse, create_id=args.id)
+    run_pipeline(
+        download_dumps=args.ndl,
+        download_meta=args.nm,
+        parse=args.np,
+        vectorize=args.nv,
+        create_id=args.nid,
+    )

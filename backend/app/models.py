@@ -4,6 +4,7 @@ models.py
 This module is used to define the database models for the application.
 """
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.sql import func
 
@@ -25,6 +26,8 @@ class Article(Base):
     )  # Wikipedia article ID
     title = Column(String(255), nullable=False, index=True)
     content = Column(Text, nullable=False)
+    # 384 dimension vector
+    content_vector = Column(Vector(384), nullable=True)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -60,3 +63,17 @@ class ChatMessage(Base):
 
     def __repr__(self):
         return f"<ChatMessage(session_id='{self.session_id}', role='{self.role}')>"
+
+
+class Page(Base):
+    __tablename__ = "page"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    namespace = Column(Integer, nullable=False, index=True)
+    title = Column(String(255), nullable=False, index=True)
+
+
+class CategoryLink(Base):
+    __tablename__ = "categorylinks"
+    id = Column(Integer, primary_key=True)
+    cl_from = Column(Integer, nullable=False, index=True)
+    cl_to = Column(String(255), nullable=False, index=True)
