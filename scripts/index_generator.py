@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 from logging import getLogger
@@ -9,7 +8,6 @@ from sqlalchemy import text
 sys.path.append(os.getcwd())
 
 from backend.app.database import SessionLocal
-
 from scripts.common.log_setting import setup_logger
 
 # ========== SQL Commands ==========

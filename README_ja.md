@@ -1,53 +1,44 @@
 # Dify対応 Wikipedia Q\&Aチャットボット バックエンド
 
+[](https://opensource.org/licenses/MIT)
+[](https://www.python.org/downloads/)
+[](https://www.docker.com/)
 
-Dify AIチャットボットに、日本語版Wikipedia全体の知識をナレッジベースとして提供するために設計されたバックエンドシステムです。このプロジェクトは、高速な全文検索APIを提供し、Difyにカスタムツールとして統合することで、チャットボットが検証済みの情報源に基づいて質問に回答できるようになります。
+Dify AIチャットボットに、日本語版Wikipedia全体の知識をナレッジベースとして提供するために設計されたバックエンドシステムです。このプロジェクトは、高速な全文検索と最新の意味検索を組み合わせたハイブリッド検索APIを提供し、Difyにカスタムツールとして統合することで、チャットボットが検証済みの情報源に基づいて質問に回答できるようになります。
 
-## ✨ 特徴
+## 特徴
 
-  - **完全なデータパイプライン**: 日本語版WikipediaのXMLダンプ全体を取り込み、処理します。
-  - **高速な全文検索**: PostgreSQLと`pg_trgm`拡張機能、GINインデックスを活用し、数百万件の記事に対する高速な全文検索を実現します。
-  - **FastAPIによるバックエンド**: FastAPIで構築された、堅牢でモダンなAPIサーバーが検索とチャット機能を提供します。
-  - **Difyエージェント連携**: セルフホストしたDifyインスタンスに、カスタムAPIツールとしてシームレスに統合します。
-  - **チャット履歴管理**: 会話の文脈を維持するため、対話履歴をデータベースに永続化します。
-  - **Dockerによる完全なコンテナ化**: データベースやDifyプラットフォームを含む、全ての環境をDockerとDocker Composeで管理し、簡単なセットアップと再現性を実現します。
+  - **堅牢なデータパイプライン**: 日本語版WikipediaのXMLダンプ全体を処理するための、複数ステージから成る、中断・再開可能なパイプラインを構築。
+  - **ハイブリッド検索基盤**: キーワード検索（`pg_trgm`）とベクトル検索（`pg_vector`とHNSWインデックス）の両方を実装し、高度で正確な情報検索の基盤を提供。
+  - **GPUによるベクトル化高速化**: Docker経由でNVIDIA GPUを活用し、Sentence Transformerモデルによる記事のベクトル化処理を劇的に高速化。
+  - **FastAPIによるバックエンド**: FastAPIで構築された、モダンで高性能なAPIサーバーが検索とチャット履歴管理のエンドポイントを提供。
+  - **Difyエージェント連携**: セルフホストしたDifyインスタンスに、動的に生成されたOpenAPIスキーマを介して、カスタムツールとしてシームレスに統合。
+  - **完全なコンテナ化とネットワーク**: このプロジェクトとローカルDifyインスタンスの両方をDocker Composeで管理し、共有ネットワークでブリッジすることで、安定したコンテナ間通信を実現。
 
-## 🏛️ アーキテクチャ
+## アーキテクチャ
 
-このシステムは、2つの独立した`docker-compose`プロジェクトが、共有のDockerネットワークを介して通信することで動作します。
+このシステムは、2つの独立した`docker-compose`プロジェクトが、共有のDockerネットワークを介して通信することで動作します。データパイプラインは、堅牢性と効率性のために、責務が分離された一連のスクリプトとして設計されています。
 
-```
-+------------------+      +--------------------------------+      +-----------------------+      +-----------------------+
-| エンドユーザー   | <--> |  Dify (ローカル)               | <--> |  共有Docker           | <--> |  FastAPIバックエンド  |
-| (ブラウザ)       |      | (プロンプト解釈・ツール呼出)   |      |  ネットワーク         |      | (dify-rag-dev:8000)   |
-+------------------+      +--------------------------------+      | ("chatbot-network")   |      +-----------------------+
-                                                                  +-----------------------+                |
-                                                                                                           | <--> +-----------------------+
-                                                                                                           |      |  PostgreSQL          |
-                                                                                                           |      | (Wikipediaデータ)     |
-                                                                                                           +------> +-----------------------+
-```
-
-### 🛠️ 技術スタック
+### 技術スタック
 
   - **バックエンド**: Python, FastAPI
-  - **データベース**: PostgreSQL (`pg_trgm`拡張機能)
-  - **プラットフォーム**: Dify (セルフホスト)
-  - **インフラ**: Docker, Docker Compose
+  - **データベース**: PostgreSQL (`pg_trgm` & `pg_vector`拡張)
+  - **AI/ML**: Dify (セルフホスト), Sentence Transformers
+  - **インフラ**: Docker, Docker Compose, NVIDIA Container Toolkit (GPU利用時)
 
 ## 🚀 セットアップとインストール
 
-このプロジェクトは、このリポジトリとローカルのDifyインスタンスの両方が起動し、接続されている必要があります。
+このセットアップは、このリポジトリとローカルのDifyインスタンスの両方を起動し、接続することを伴います。
 
 ### 前提条件
 
   - Git
-  - Docker
-  - Docker Compose
+  - Docker & Docker Compose
+  - （任意だが強く推奨）NVIDIA GPUと最新のドライバ、そしてOSに対応したNVIDIA Container Toolkitのサポート（例：WSL2上のDocker Desktop経由）
 
 ### ステップ1：リポジトリのクローン
 
-まず、このプロジェクトとDifyの公式リポジトリを、それぞれ別のディレクトリにクローンします。
+このプロジェクトとDify公式リポジトリを、それぞれ別のディレクトリにクローンします。
 
 ```bash
 # このプロジェクトをクローン
@@ -61,181 +52,76 @@ git clone https://github.com/langgenius/dify.git
 
 ### ステップ2：共有Dockerネットワークの作成
 
-2つのプロジェクトが互いに通信できるように、専用のDockerネットワークを作成します。
+2つのプロジェクトが互いに通信できるように、専用のDockerネットワークを作成します。これは一度だけ実行すればOKです。
 
 ```bash
 docker network create chatbot-network
 ```
 
-### ステップ3：チャットボットプロジェクトの設定
+### ステップ3：各サービスの設と起動
+
+2つのターミナルを準備してください。
+
+**ターミナル1（このプロジェクト用）:**
 
 1.  `dify-rag-wiki`ディレクトリに移動します。
+2.  環境変数ファイルを作成します: `cp .env.example .env`。
+3.  新しい`.env`ファイルに必要な値を設定します。
+4.  `docker-compose.yml`と`docker-compose.gpu.yml`を、私たちが会話を通してたどり着いた最終的な設定（メモリ/共有メモリ設定、ネットワーク設定など）に修正します。
+5.  コンテナを起動します。
+      - **GPU利用時:** `docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build`
+      - **CPUのみ:** `docker-compose up -d --build`
 
-2.  サンプルの環境変数ファイルをコピーして、自分用の設定ファイルを作成します。
-
-    ```bash
-    cp .env.example .env
-    ```
-
-    *新しい`.env`ファイルに必要な値を忘れずに設定してください。*
-
-### ステップ4：Difyプロジェクトの設定
+**ターミナル2（Difyプロジェクト用）:**
 
 1.  `dify/docker`ディレクトリに移動します。
+2.  Dify用の環境変数ファイルを作成します: `cp .env.example .env`。
+3.  `dify/docker/docker-compose.yml`を修正し、共有ネットワークに参加させます（`networks:`ブロックに`chatbot-network`を追加し、`api`, `worker`, `db`サービスをそのネットワークに参加させる）。
+4.  Difyのコンテナを起動します: `docker-compose up -d`。
 
-2.  Dify用の環境変数ファイルを作成します。
+### ステップ4：データ準備パイプラインの実行
 
-    ```bash
-    cp .env.example .env
-    ```
-
-3.  `dify/docker/docker-compose.yml`を修正し、Difyの主要サービスを共有ネットワークに参加させます。
-
-    a. ファイルの末尾にある`networks:`ブロックに、共通ネットワークの定義を**追記**します。
-
-    ```yaml
-    # dify/docker/docker-compose.yml の末尾
-    networks:
-      # ... (ssrf_proxy_networkなどの既存の定義はそのまま) ...
-      chatbot-network:
-        external: true
-    ```
-
-    b. `db`, `api`, `worker`サービスの`networks:`リストに`chatbot-network`を**追加**します。
-
-    ```yaml
-    # dify/docker/docker-compose.yml の中の services: ブロック
-    services:
-      db:
-        # ...
-        networks:
-          - default # または他の既存ネットワーク
-          - chatbot-network
-      api:
-        # ...
-        networks:
-          - default # または他の既存ネットワーク
-          - chatbot-network
-      worker:
-        # ...
-        networks:
-          - default # または他の既存ネットワーク
-          - chatbot-network
-    ```
-
-### ステップ5：すべてのサービスを起動する
-
-それぞれのプロジェクトのディレクトリから、両方のプロジェクトを起動します。
-
-  a. **GPU非搭載**のPCの場合
-
-  ```bash
-  # dify-rag-wiki ディレクトリで実行
-  docker-compose up -d --build
-
-  # dify/docker ディレクトリで実行
-  docker-compose up -d
-  ```
-
-  b. **GPU搭載**のPCの場合
-
-  ```bash
-  # dify-rag-wiki ディレクトリで実行
-  docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
-
-  # dify/docker ディレクトリで実行
-  docker-compose up -d
-  ```
-
-
-すべてのコンテナが起動し、healthy状態になるのを待ちます。
-
-### ステップ6：データ初期化パイプラインの実行
-
-すべてのコンテナが起動したら、`dify-rag-wiki`ディレクトリから、全てを自動で行うパイプラインスクリプトを実行します。このスクリプトは、Wikipediaデータのダウンロード、解析、そして検索インデックスの作成を行います。
-
-**警告：** この処理は非常に時間がかかり、完了までに数時間〜数日かかる場合があります。
+全てのコンテナが起動したら、**`dify-rag-wiki`プロジェクトのルート**から、\*\*ホストマシン（WSL2ターミナル）\*\*で以下のコマンドを順番に実行します。
 
 ```bash
-docker-compose exec dify-rag-dev python scripts/init_pipeline.py
+# Python仮想環境を有効化
+source .venv/bin/activate
+
+# 1. 必要なデータダンプをすべてダウンロード
+docker-compose exec python-dev python scripts/wiki_loader.py
+
+# 2. XMLを解析し、中間ファイル(JSONL)を生成
+# (CPUに負荷がかかる、長時間の処理)
+docker-compose exec python-dev python scripts/wiki_parser.py
+
+# 3. 中間ファイルからDBにデータを投入
+# (コンテナ内で実行)
+docker-compose exec python-dev python scripts/inserter.py
+
+# 4. 全記事をベクトル化
+# (GPUを使用する、非常に高負荷の処理)
+docker-compose exec python-dev pythonscripts/vectorizer.py
+
+# 5. 最終的なDBインデックスをすべて作成
+# (ディスクI/Oに負荷がかかる、長時間の処理)
+docker-compose exec python-dev python scripts/index_generator.py
 ```
 
-## 使い方
+### ステップ5：Difyツールの設定
 
-### 1\. Difyツールのセットアップ
+ローカルのDify (`http://localhost/`) にログインし、私たちのAPI（`http://localhost:8088/openapi.json`でスキーマ取得可能）をツールとして登録します。その際、スキーマ内の`servers`ブロックのURLを`http://dify-rag-dev:8000`に設定することを忘れないでください。
 
-1.  ローカルのDify (`http://localhost/`) にアクセスし、初期セットアップを完了させます。
+## トラブルシューティング
 
-2.  新しいアプリケーションを、\*\*エージェント（Agent）\*\*タイプで作成します。
-
-3.  **ツール** -\> **ツールを追加** -\> **カスタム** と進みます。
-
-4.  ブラウザで`http://localhost:8088/openapi.json`にアクセスし、私たちのAPIのOpenAPIスキーマ（JSON）をすべてコピーします。
-
-5.  **【重要】** コピーしたJSONを修正します。`info`ブロックの直後に`servers`ブロックを追加し、APIコンテナの内部アドレスを指定します。
-
-    ```json
-    {
-      "openapi": "3.1.0",
-      "info": { ... },
-      "servers": [
-        {
-          "url": "http://dify-rag-dev:8000"
-        }
-      ],
-      "paths": { ... }
-    }
+  - **WSL2でのパーミッションエラー**: `docker build`やその他の操作中に`./postgres-data`ディレクトリ関連の`Permission Denied`エラーに遭遇した場合、コンテナを初回起動した後に、ホストのWSL2ターミナルから以下のコマンドを実行してください。
+    ```bash
+    sudo chmod -R 777 ./postgres-data
     ```
-
-6.  この**修正後のスキーマ**をDifyの入力欄に貼り付け、ツールを保存します。
-
-### 2\. プロンプトの設定
-
-Difyエージェントの**オーケストレーション**画面で、以下を設定します。
-
-1.  作成したWikipedia検索ツールをコンテキストに追加します。
-
-2.  エージェントに、いつ、どのようにツールを使うべきかを指示するシステムプロンプトを設定します。
-
-    **プロンプト例：**
-
-    ```
-    #役割
-    あなたは、日本語版Wikipediaの知識を使って、ユーザーの質問に正確に答える専門家アシスタントです。
-
-    #利用可能なツール
-    あなたは、指定されたキーワードで日本語版Wikipediaの記事を検索するツールを利用できます。
-
-    #ワークフロー
-    1. ユーザーからの質問を受け取ったら、まずその質問から最も重要と思われる検索キーワードを1つ、抽出します。
-    2. 必ずWikipedia検索ツールを使い、そのキーワードを`q`パラメータに設定して記事を検索します。
-    3. ツールが返した検索結果の中から、最も関連性が高い記事の`content`（本文）を注意深く読みます。
-    4. その情報だけに基づいて、ユーザーの質問に対する回答を生成します。
-    5. 回答の最後には、「参考記事：」として、利用した記事の`title`を必ず明記してください。
-
-    #制約
-    - ツールの検索結果にない情報や、あなたの個人的な知識で回答してはいけません。
-    - 関連情報が見つからなかった場合は、正直に「関連する情報がWikipedia内には見つかりませんでした」と答えてください。
-    ```
-
-### 3\. チャットの実行！
-
-Difyの**デバッグとプレビュー**パネルで、質問を入力してみましょう。オーケストレーションのログで、エージェントが私たちのカスタムAPIを呼び出し、答えを生成する様子を観察できます。
-
-## APIエンドポイント
-
-  - `GET /api/articles/search?q={query}`: 記事のタイトルと本文に対して全文検索を行います。
-  - `POST /api/chat/`: チャットの対話を処理し、セッション履歴を管理し、Difyと通信します。
+  - **インデックス作成中のメモリ不足**: `create_indexes.py`がメモリ不足で失敗する場合、`docker-compose.yml`の`db`サービスに`mem_limit`と`shm_size`が設定されていることを確認してください（例: `mem_limit: 4g`, `shm_size: 2g`）。
 
 ## ライセンス
 
-このプロジェクトは[MITライセンス](https://opensource.org/licenses/MIT)の下で公開されています。詳細は`LICENSE`ファイルをご覧ください。
+このプロジェクトはMITライセンスです。
 
-## 今後の展望
-
-  - **ベクトル検索の実装**: `pg_vector`とSentence Transformerモデルを統合し、キーワード検索を補完する真のセマンティック（意味）検索機能を実装する。
-  - **フロントエンド・インターフェースの実装**: ロードマップに定義された、シンプルなチャットUIを構築する。
-  - **CI/CDパイプラインの構築**: テストとデプロイを自動化する。
-
-## Author
-Hikaru Tomizawa
+## 作成者
+Hikaru Tomizawa（富澤晃）

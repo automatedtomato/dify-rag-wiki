@@ -13,7 +13,6 @@ sys.path.append(os.getcwd())
 from sentence_transformers import SentenceTransformer
 
 from backend.app.models import Article
-
 from scripts.common.log_setting import setup_logger
 
 # from sqlalchemy.orm import Session
@@ -115,10 +114,16 @@ def main():
                     db.commit()
                     logger.info("Committed...")
                     since_last_commit = 0
-                    
-                del vectors_tensor, vectors_numpy, contents, articles_to_process, articles_batch
+
+                del (
+                    vectors_tensor,
+                    vectors_numpy,
+                    contents,
+                    articles_to_process,
+                    articles_batch,
+                )
                 # Release GPU memory
-                if device == 'cuda':
+                if device == "cuda":
                     torch.cuda.empty_cache()
                 # Force garbage collection
                 gc.collect()
