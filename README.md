@@ -1,30 +1,42 @@
 # Dify-Powered Wikipedia Q\&A Chatbot Backend
 
-[](https://opensource.org/licenses/MIT)
-[](https://www.python.org/downloads/)
-[](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
 
-This is the backend system for a sophisticated Q\&A chatbot powered by Dify. It leverages the entire Japanese Wikipedia as its knowledge base, providing a hybrid search API that combines high-speed full-text search with modern semantic search capabilities. The system is fully containerized with Docker for easy setup and reproducibility.
+This is the backend system for a sophisticated Q&A chatbot powered by Dify. It leverages the entire Japanese Wikipedia as its knowledge base, providing a hybrid search API that combines high-speed keyword search (`pg_trgm`) with modern semantic search (`pg_vector`). The system is fully containerized with Docker for easy setup and reproducibility.
 
 ## Features
 
-  - **Robust Data Pipeline**: A multi-stage, resumable pipeline to process the entire Japanese Wikipedia XML dump.
-  - **Hybrid Search Foundation**: Implements both keyword search (`pg_trgm`) and vector search (`pg_vector` with HNSW index), providing a foundation for advanced, accurate retrieval.
-  - **GPU-Accelerated Vectorization**: Utilizes NVIDIA GPUs via Docker to dramatically speed up the process of converting articles into vectors with Sentence Transformer models.
-  - **FastAPI Backend**: A modern, high-performance API server providing endpoints for search and chat history management.
-  - **Dify Agent Integration**: Seamlessly integrates with a self-hosted Dify instance as a custom tool via a dynamically generated OpenAPI schema.
-  - **Fully Containerized & Networked**: Manages both this project and a local Dify instance via Docker Compose, bridging them with a shared network for stable inter-container communication.
+- **Robust & Decoupled Data Pipeline**: A multi-stage, resumable pipeline to parse the entire Wikipedia XML dump, insert it into a database, generate vector embeddings, and build all indexes.
+- **Hybrid Search Engine**: Implements both keyword search (`pg_trgm` with GIN index) and vector search (`pg_vector` with HNSW index), providing a foundation for advanced, accurate information retrieval.
+- **GPU-Accelerated Vectorization**: Utilizes NVIDIA GPUs via Docker to dramatically speed up the process of converting millions of articles into vector embeddings with Sentence Transformer models.
+- **FastAPI Backend**: A modern, high-performance API server providing endpoints for hybrid search and a simple chat interface.
+- **Dify Agent Integration**: Designed to integrate with a self-hosted Dify instance as a custom tool via a dynamically generated OpenAPI schema.
+- **Fully Containerized & Networked**: Manages both this project and a local Dify instance via Docker Compose, bridging them with a shared network for stable inter-container communication.
+
 
 ## Architecture
 
-The system operates with two main `docker-compose` projects communicating over a shared Docker network. The data pipeline is designed as a series of decoupled scripts for robustness and efficiency.
+The system operates with two main `docker-compose` projects communicating over a shared Docker network. The data preparation pipeline consists of a series of independent scripts, each with a single responsibility, ensuring robustness and maintainability.
 
 ### Tech Stack
 
-  - **Backend**: Python, FastAPI
-  - **Database**: PostgreSQL with `pg_trgm` & `pg_vector` extensions
-  - **AI/ML**: Dify (Self-hosted), Sentence Transformers
-  - **Infrastructure**: Docker, Docker Compose, NVIDIA Container Toolkit (for GPU)
+-   **Backend**: Python, FastAPI, Pydantic
+-   **Database**: PostgreSQL with `pg_trgm` & `pg_vector` extensions
+-   **AI/ML**: Dify (Self-hosted), Sentence Transformers, PyTorch
+-   **Infrastructure**: Docker, Docker Compose, NVIDIA Container Toolkit (for GPU on WSL2)
+
+## Setup and Installation
+
+This setup involves running two separate `docker-compose` projects (this project and Dify) and connecting them.
+
+### Prerequisites
+
+-   Git
+-   Docker & Docker Compose
+-   (Optional but Highly Recommended) An NVIDIA GPU with up-to-date drivers and NVIDIA Container Toolkit support for your OS (e.g., via Docker Desktop on WSL2).
+
 
 ## Setup and Installation
 
@@ -65,8 +77,7 @@ You will need two separate terminals.
 
 1.  Navigate to the `dify-rag-wiki` directory.
 2.  Create your environment file: `cp .env.example .env`.
-3.  Modify your `docker-compose.yml` and `docker-compose.gpu.yml` to match the final versions from our conversation (including memory/shared memory settings and network configuration).
-4.  Launch the containers.
+3.  Launch the containers.
       - **For GPU:** `docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build`
       - **For CPU:** `docker-compose up -d --build`
 
@@ -82,9 +93,11 @@ You will need two separate terminals.
 This is a multi-step manual process. Execute these commands from the **root of the `dify-rag-wiki` project** on your **host machine (WSL2 terminal)**.
 
 ```bash
-# Activate your Python virtual environment first
-source .venv/bin/activate
+docker-compose exec python-dev python scripts/init_pipeline.py
+```
 
+Or instead, run separately:
+```bash
 # 1. Download all necessary data dumps
 docker-compose exec python-dev python scripts/wiki_loader.py
 
@@ -105,9 +118,35 @@ docker-compose exec python-dev python scripts/vectorizer.py
 docker-compose exec python-dev python scripts/index_generator.py
 ```
 
-### Step 5: Configure Dify Tool
+## Usage and Testing
+Once the pipeline is complete, you can test the system in two ways.
 
-Follow the instructions from our previous conversation to register the API (available at `http://localhost:8088/openapi.json`) as a tool in your local Dify instance, making sure to set the server URL in the schema to `http://dify-rag-dev:8000`.
+### **1. Test the Backend API via Swagger UI**
+This tests the API in isolation.
+1. Navigate to `http://localhost:8088/docs` in your browser.
+2. Find the `GET /api/articles/search` endpoint and expand it.
+3. Click "Try it out", enter a query (e.g., `Dinosaurs`), and click "Execute".
+4. You should receive a 200 OK response with a JSON list of the most relevant articles, found via the hybrid search, almost instantly.
+
+### **2. Test with the Frontend and Dify**
+This tests the full end-to-end application.
+1. **Set up the Dify Tool:**
+      - Access your local Dify instance (`http://localhost/`).
+      - Create a new Agent type application.
+      - Go to **Tools** -> **Add Tool** -> **Custom**.
+      - Get the OpenAPI schema from `http://localhost:8088/openapi.json`.
+      - **Modify the schema** to include a servers block pointing to the API container: `"servers": [ { "url": "http://dify-rag-dev:8000" } ]`.
+      - Paste the modified schema into Dify and save the tool.
+      - In the Agent's **Orchestration** view, add the tool and configure your prompt to use it.
+2. **Run the Frontend Server:**
+      - From the root of the `dify-rag-wiki project`, run the following command:
+        ```Bash
+        python -m http.server 8000 --directory ./frontend
+        ```
+
+3. **Chat!**
+      - Open your browser and navigate to `http://localhost:8000`.
+      - Start asking questions and see the full system in action.
 
 ## Troubleshooting
 

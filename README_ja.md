@@ -1,8 +1,8 @@
 # Dify対応 Wikipedia Q\&Aチャットボット バックエンド
 
-[](https://opensource.org/licenses/MIT)
-[](https://www.python.org/downloads/)
-[](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
 
 Dify AIチャットボットに、日本語版Wikipedia全体の知識をナレッジベースとして提供するために設計されたバックエンドシステムです。このプロジェクトは、高速な全文検索と最新の意味検索を組み合わせたハイブリッド検索APIを提供し、Difyにカスタムツールとして統合することで、チャットボットが検証済みの情報源に基づいて質問に回答できるようになります。
 
@@ -17,7 +17,8 @@ Dify AIチャットボットに、日本語版Wikipedia全体の知識をナレ�
 
 ## アーキテクチャ
 
-このシステムは、2つの独立した`docker-compose`プロジェクトが、共有のDockerネットワークを介して通信することで動作します。データパイプラインは、堅牢性と効率性のために、責務が分離された一連のスクリプトとして設計されています。
+このシステムは、2つの独立した`docker-compose`プロジェクトが、共有のDockerネットワークを介して通信することで動作します。データ準備パイプラインは、堅牢性とメンテナンス性のために、責務が分離された一連の独立したスクリプトとして設計されています。
+
 
 ### 技術スタック
 
@@ -58,7 +59,7 @@ git clone https://github.com/langgenius/dify.git
 docker network create chatbot-network
 ```
 
-### ステップ3：各サービスの設と起動
+### ステップ3：各サービスの設定と起動
 
 2つのターミナルを準備してください。
 
@@ -67,8 +68,7 @@ docker network create chatbot-network
 1.  `dify-rag-wiki`ディレクトリに移動します。
 2.  環境変数ファイルを作成します: `cp .env.example .env`。
 3.  新しい`.env`ファイルに必要な値を設定します。
-4.  `docker-compose.yml`と`docker-compose.gpu.yml`を、私たちが会話を通してたどり着いた最終的な設定（メモリ/共有メモリ設定、ネットワーク設定など）に修正します。
-5.  コンテナを起動します。
+4.  コンテナを起動します。
       - **GPU利用時:** `docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build`
       - **CPUのみ:** `docker-compose up -d --build`
 
@@ -81,12 +81,15 @@ docker network create chatbot-network
 
 ### ステップ4：データ準備パイプラインの実行
 
-全てのコンテナが起動したら、**`dify-rag-wiki`プロジェクトのルート**から、\*\*ホストマシン（WSL2ターミナル）\*\*で以下のコマンドを順番に実行します。
+全てのコンテナが起動したら、**`dify-rag-wiki`プロジェクトのルート**から、\*\*ホストマシン（WSL2ターミナル）\*\*で以下のコマンドを実行します。
 
 ```bash
-# Python仮想環境を有効化
-source .venv/bin/activate
+docker-compose exec python-dev python scripts/init_pipeline.py
+```
 
+また、各ステップを個別で起動することもできます。
+
+```bash
 # 1. 必要なデータダンプをすべてダウンロード
 docker-compose exec python-dev python scripts/wiki_loader.py
 
@@ -107,9 +110,32 @@ docker-compose exec python-dev pythonscripts/vectorizer.py
 docker-compose exec python-dev python scripts/index_generator.py
 ```
 
-### ステップ5：Difyツールの設定
+## 使い方とテスト (Usage and Testing)
+パイプラインが完了したら、2つの方法でシステムをテストできます。
+### **1. APIドキュメント（Swagger UI）でのテスト**
+バックエンドAPIを単体でテストするのに最適です。
+1. ブラウザで`http://localhost:8088/docs`を開きます。
+2. `GET /api/articles/search`エンドポイントを開きます。
+2. 「Try it out」をクリックし、クエリ（例: `恐竜`）を入力して「Execute」を押します。
+4. ハイブリッド検索によって見つかった、関連性の高い記事のリストが、ほぼ一瞬で返ってくれば成功です。
 
-ローカルのDify (`http://localhost/`) にログインし、私たちのAPI（`http://localhost:8088/openapi.json`でスキーマ取得可能）をツールとして登録します。その際、スキーマ内の`servers`ブロックのURLを`http://dify-rag-dev:8000`に設定することを忘れないでください。
+### **2. フロントエンドとDifyを使ったテスト**
+アプリケーション全体をエンドツーエンドでテストします。
+1. **Difyツールの設定:**
+      - ローカルのDify (`http://localhost/`) にアクセスし、**エージェント**（Agent）タイプのアプリを新規作成します。
+      - **ツール** -> **ツールを追加** -> **カスタム**と進みます。
+      - `http://localhost:8088/openapi.json`からOpenAPIスキーマをコピーします。
+      - スキーマを修正し、`servers`ブロックにコンテナの内部アドレスを指すURLを追加します: `"servers": [ { "url": "http://dify-rag-dev:8000" } ]`。
+      - 修正後のスキーマをDifyに貼り付けて、ツールを保存します。
+      - エージェントの`オーケストレーション`画面で、ツールを追加し、プロンプトでツールを使うよう指示します。
+2. **フロントエンドサーバーの起動:**
+      - `dify-rag-wiki`プロジェクトのルートから、以下のコマンドを実行します。
+        ```Bash
+        python -m http.server 8000 --directory ./frontend
+        ```
+3. **チャットの実行:**
+      - ブラウザで`http://localhost:8000`を開きます。
+      - 質問を入力し、システム全体が連携して動作する様子を観察します。
 
 ## トラブルシューティング
 

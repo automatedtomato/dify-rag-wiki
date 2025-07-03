@@ -1,6 +1,7 @@
 # scripts/inserter.py
-# This script reads the .jsonl file created by parser.py and inserts the data into the database.
-
+"""
+Sets up the database and inserts articles from the JSONL file.
+"""
 import json
 import os
 import sys
@@ -10,10 +11,10 @@ from tqdm import tqdm
 
 sys.path.append(os.getcwd())
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.app.models import Article, Base
+from backend.app.models import Article
 from scripts.common.log_setting import setup_logger
 
 # --- Logger Setup ---
@@ -23,28 +24,6 @@ logger = setup_logger(logger=logger)
 # --- Constants ---
 INPUT_JSONL_PATH = os.path.join("data/raw", "articles.jsonl")
 BATCH_SIZE = 1000
-
-
-def setup_database(engine):
-    """Sets up database prerequisites (extensions, tables)."""
-    try:
-        with engine.connect() as connection:
-            with connection.begin():
-                logger.info("Enabling required DB extensions: pg_trgm, vector...")
-                connection.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
-                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-            logger.info("Extensions enabled successfully.")
-    except Exception as e:
-        logger.error(f"Failed to enable extensions: {e}", exc_info=True)
-        raise
-
-    try:
-        logger.info("Ensuring all tables exist...")
-        Base.metadata.create_all(bind=engine)
-        logger.info("Tables are ready.")
-    except Exception as e:
-        logger.error(f"Failed to create tables: {e}", exc_info=True)
-        raise
 
 
 def main():
@@ -57,10 +36,6 @@ def main():
     )
     engine = create_engine(DATABASE_URL)
 
-    # Step 1: Setup database prerequisites
-    setup_database(engine)
-
-    # Step 2: Insert data
     SessionLocal_script = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     with SessionLocal_script() as db:
         logger.info("Deleting old article data...")
@@ -73,13 +48,12 @@ def main():
         saved_count = 0
         try:
             with open(INPUT_JSONL_PATH, "r", encoding="utf-8") as f:
-                # To show a progress bar, we need the total number of lines first.
-                total_lines = sum(1 for line in f)
-                f.seek(0)  # Reset file pointer to the beginning
+                # Get total line count for tqdm progress bar
+                total_lines = sum(1 for _ in f)
+                f.seek(0)
 
                 for line in tqdm(f, total=total_lines, desc="Inserting articles"):
                     data = json.loads(line)
-                    # Using **data to unpack the dictionary into keyword arguments
                     new_article = Article(**data)
                     article_buffer.append(new_article)
 

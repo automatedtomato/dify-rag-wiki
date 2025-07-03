@@ -11,10 +11,10 @@ services:
     # Run the container in an interactive mode
     # tty: true
     # stdin_open: true
-    environment:
-      - TZ=Asia/Tokyo
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Tokyo
     depends_on:
       db:
         condition: service_healthy
