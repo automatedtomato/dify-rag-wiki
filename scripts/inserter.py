@@ -3,18 +3,19 @@
 Sets up the database and inserts articles from the JSONL file.
 """
 import json
-from logging import getLogger
 import os
 import sys
+from logging import getLogger
+
 from tqdm import tqdm
 
 sys.path.append(os.getcwd())
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.models import Article, Base
-from scripts.common.log_setting import setup_logger
 
+from backend.app.models import Article
+from scripts.common.log_setting import setup_logger
 
 # --- Logger Setup ---
 logger = getLogger(__name__)
@@ -24,11 +25,15 @@ logger = setup_logger(logger=logger)
 INPUT_JSONL_PATH = os.path.join("data/raw", "articles.jsonl")
 BATCH_SIZE = 1000
 
+
 def main():
     """
     Sets up the database and inserts articles from the JSONL file.
     """
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:mysecretpassword123@localhost:5432/chatbot_db")
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://user:mysecretpassword123@localhost:5432/chatbot_db",
+    )
     engine = create_engine(DATABASE_URL)
 
     SessionLocal_script = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -63,14 +68,19 @@ def main():
                 db.commit()
                 saved_count += len(article_buffer)
 
-            logger.info(f"Process complete. A total of {saved_count} articles have been inserted.")
+            logger.info(
+                f"Process complete. A total of {saved_count} articles have been inserted."
+            )
         except FileNotFoundError:
-            logger.error(f"Input file not found: {INPUT_JSONL_PATH}. Please run the parser script first.")
+            logger.error(
+                f"Input file not found: {INPUT_JSONL_PATH}. Please run the parser script first."
+            )
             sys.exit(1)
         except Exception as e:
             logger.error(f"An error occurred during DB insertion: {e}", exc_info=True)
             db.rollback()
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

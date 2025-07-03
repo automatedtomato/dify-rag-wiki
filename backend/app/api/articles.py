@@ -2,9 +2,9 @@
 Search API for Wikipedia articles
 """
 
+import time
 from logging import getLogger
 from typing import List
-import time
 
 import torch
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -61,7 +61,7 @@ def search_articles(
     """
     logger.info("--- Search request received ---")
     logger.info(f"Query: {q}")
-    
+
     # Stage 1: Keyword Search (limit to 100)
     try:
         logger.info("[Step 1/6] Starting keyword search (pg_trgm)...")
@@ -83,7 +83,10 @@ def search_articles(
 
         candidate_ids = [article_id for article_id, in candidates]
 
-        logger.info(f"[Step 2/6] Keyword search found {len(candidate_ids)} candidates in {time.time() - start_time:.2f} seconds.")
+        logger.info(
+            f"[Step 2/6] Keyword search found {len(candidate_ids)} candidates \
+                in {time.time() - start_time:.2f} seconds."
+        )
         if not candidate_ids:
             logger.warning("Keyword search returned no results")
             return []
@@ -99,8 +102,10 @@ def search_articles(
         start_time = time.time()
 
         query_vector = model.encode(q, convert_to_tensor=False, device=DEVICE)
-        logger.info(f"[Step 4/6] Query vectorized successfully in {time.time() - start_time:.2f} seconds.")
-        
+        logger.info(
+            f"[Step 4/6] Query vectorized successfully in {time.time() - start_time:.2f} seconds."
+        )
+
         # Usin l2_distance (<->) to sort by similarity
         logger.info("[Step 5/6] Starting semantic search (pg_vector re-ranking)...")
         start_time = time.time()
@@ -112,7 +117,10 @@ def search_articles(
             .all()
         )
 
-        logger.info(f"[Step 6/6] Semantic search complete in {time.time() - start_time:.2f} seconds. Returning results.")
+        logger.info(
+            f"[Step 6/6] Semantic search complete in \
+                {time.time() - start_time:.2f} seconds. Returning results."
+        )
         return final_articles
 
     except Exception as e:
