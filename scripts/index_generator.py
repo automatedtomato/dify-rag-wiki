@@ -12,8 +12,6 @@ from scripts.common.log_setting import setup_logger
 
 # ========== SQL Commands ==========
 SQL_COMMANDS = [
-    "CREATE EXTENSION IF NOT EXISTS pg_trgm;",
-    "CREATE EXTENSION IF NOT EXISTS vector;",
     "CREATE INDEX IF NOT EXISTS idx_articles_title_gin \
         ON articles USING gin (title gin_trgm_ops);",
     "CREATE INDEX IF NOT EXISTS idx_articles_content_gin \

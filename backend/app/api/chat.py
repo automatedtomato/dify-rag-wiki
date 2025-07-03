@@ -4,10 +4,17 @@ Process conversation between user and Dify.
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import time
+
+from logging import getLogger
 
 from .. import models, schemas
 from ..database import SessionLocal
 from ..services.dify_client import DifyClient
+from ..common.log_setter import setup_logger
+
+logger = getLogger(__name__)
+logger = setup_logger(logger=logger, log_level="DEBUG")
 
 # Create independent endpoint group
 router = APIRouter()
@@ -35,7 +42,9 @@ def handle_chat_message(request: schemas.ChatRequest, db: Session = Depends(get_
     Recieve message from user, talk with Dify,
     and save conversation to DB
     """
-
+    logger.info("--- Chat request received ---")
+    logger.info(f"Session ID: {request.session_id}, Query: '{request.query}'")
+    
     session_id = request.session_id
     user_query = request.query
 
@@ -53,6 +62,12 @@ def handle_chat_message(request: schemas.ChatRequest, db: Session = Depends(get_
         if last_assisant_message and last_assisant_message.dify_conversation_id
         else None
     )
+    
+    if conversation_id_for_dify:
+        logger.debug(f"Continuing conversation. Dify conversation_id: {conversation_id_for_dify}")
+    else:
+        logger.debug("Starting new conversation.")
+
 
     # 2. Save user message to DB
     user_message = models.ChatMessage(
@@ -62,14 +77,26 @@ def handle_chat_message(request: schemas.ChatRequest, db: Session = Depends(get_
 
     # 3. Call Dify client
     dify_client = DifyClient()
+    
+    logger.debug("Calling DifyClient.chat()... This may take a while.")
+    start_time = time.time()
+    
     assistant_response_content, new_conversation_id = dify_client.chat(
         user_input=user_query,
         user_id=session_id,
         conversation_id=conversation_id_for_dify,
     )
+    
+    
+    end_time = time.time()
+    logger.debug(f"DifyClient.chat() finished in {end_time - start_time:.2f} seconds.")
+    logger.debug(f"Response from Dify client (content): '{assistant_response_content}'")
+    logger.debug(f"Response from Dify client (new_conversation_id): {new_conversation_id}")
+   
 
     if not assistant_response_content:
         db.rollback()
+        logger.error("Assistant response content is empty. Rolling back and raising HTTPException.")
         raise HTTPException(status_code=500, detail="Failed to get response from Dify")
 
     # 4. Save response from Dify to db as object

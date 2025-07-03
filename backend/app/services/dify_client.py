@@ -27,7 +27,12 @@ class DifyClient:
             "Content-Type": "application/json",
         }
 
-    def chat(self, user_input: str, user_id: str, conversation_id: str | None = None):
+    def chat(
+        self,
+        user_input: str,
+        user_id: str,
+        conversation_id: str | None = None
+        ):
         """
         Call Diy chat-messages API and get response in stream
 

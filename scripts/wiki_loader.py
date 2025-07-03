@@ -39,7 +39,7 @@ SAVE_PATH = os.path.join(SAVE_DIR, "jawiki-latest-pages-articles.xml.bz2")
 
 
 # ========== Downloader ==========
-def download_file(save_path: str, url: str = DUMP_FILES["ja"]):
+def main(save_path: str = SAVE_PATH, url: str = DUMP_FILES["ja"]):
     """
     Stream-download Wikipedia articles data from dumps.
     Show progress bar.
@@ -79,4 +79,4 @@ def download_file(save_path: str, url: str = DUMP_FILES["ja"]):
 
 
 if __name__ == "__main__":
-    download_file(SAVE_PATH)
+    main()
