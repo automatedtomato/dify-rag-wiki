@@ -81,7 +81,7 @@ docker network create chatbot-network
 
 ### ステップ4：データ準備パイプラインの実行
 
-全てのコンテナが起動したら、**`dify-rag-wiki`プロジェクトのルート**から、\*\*ホストマシン（WSL2ターミナル）\*\*で以下のコマンドを実行します。
+全てのコンテナが起動したら、**`dify-rag-wiki`プロジェクトのルート**から、**ホストマシン**（WSL2ターミナル）で以下のコマンドを実行します。
 
 ```bash
 docker-compose exec python-dev python scripts/init_pipeline.py
@@ -114,7 +114,7 @@ docker-compose exec python-dev python scripts/index_generator.py
 パイプラインが完了したら、2つの方法でシステムをテストできます。
 ### **1. APIドキュメント（Swagger UI）でのテスト**
 バックエンドAPIを単体でテストするのに最適です。
-1. ブラウザで`http://localhost:8088/docs`を開きます。
+1. ブラウザで`http://localhost:8088/docs`（ポートはユーザ設定）を開きます。
 2. `GET /api/articles/search`エンドポイントを開きます。
 2. 「Try it out」をクリックし、クエリ（例: `恐竜`）を入力して「Execute」を押します。
 4. ハイブリッド検索によって見つかった、関連性の高い記事のリストが、ほぼ一瞬で返ってくれば成功です。
